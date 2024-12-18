@@ -1,0 +1,4 @@
+source;share/kickoff/local_setup.bash
+source;share/kickoff/local_setup.dsv
+source;share/kickoff/local_setup.sh
+source;share/kickoff/local_setup.zsh

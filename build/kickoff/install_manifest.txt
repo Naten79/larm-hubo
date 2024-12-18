@@ -1,0 +1,15 @@
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/ament_index/resource_index/package_run_dependencies/kickoff
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/ament_index/resource_index/parent_prefix_path/kickoff
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/ament_prefix_path.sh
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/ament_prefix_path.dsv
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/path.sh
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/path.dsv
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.bash
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.sh
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.zsh
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.dsv
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/package.dsv
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/ament_index/resource_index/packages/kickoff
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/cmake/kickoffConfig.cmake
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/cmake/kickoffConfig-version.cmake
+/home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/package.xml

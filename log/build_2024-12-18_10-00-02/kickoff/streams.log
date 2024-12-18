@@ -1,0 +1,20 @@
+[0.011s] Invoking command in '/home/s2c7/ros_space/larm-hubo/build/kickoff': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --build /home/s2c7/ros_space/larm-hubo/build/kickoff -- -j8 -l8
+[0.050s] Invoked command in '/home/s2c7/ros_space/larm-hubo/build/kickoff' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --build /home/s2c7/ros_space/larm-hubo/build/kickoff -- -j8 -l8
+[0.061s] Invoking command in '/home/s2c7/ros_space/larm-hubo/build/kickoff': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --install /home/s2c7/ros_space/larm-hubo/build/kickoff
+[0.068s] -- Install configuration: ""
+[0.068s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/ament_index/resource_index/package_run_dependencies/kickoff
+[0.068s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/ament_index/resource_index/parent_prefix_path/kickoff
+[0.068s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/ament_prefix_path.sh
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/ament_prefix_path.dsv
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/path.sh
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/environment/path.dsv
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.bash
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.sh
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.zsh
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/local_setup.dsv
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/package.dsv
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/ament_index/resource_index/packages/kickoff
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/cmake/kickoffConfig.cmake
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/cmake/kickoffConfig-version.cmake
+[0.069s] -- Up-to-date: /home/s2c7/ros_space/larm-hubo/install/kickoff/share/kickoff/package.xml
+[0.071s] Invoked command in '/home/s2c7/ros_space/larm-hubo/build/kickoff' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --install /home/s2c7/ros_space/larm-hubo/build/kickoff
