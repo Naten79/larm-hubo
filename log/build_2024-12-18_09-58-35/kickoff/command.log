@@ -1,6 +1,0 @@
-Invoking command in '/home/s2c7/ros_space/larm-hubo/build/kickoff': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake /home/s2c7/ros_space/larm-hubo/kickoff -DCMAKE_INSTALL_PREFIX=/home/s2c7/ros_space/larm-hubo/install/kickoff
-Invoked command in '/home/s2c7/ros_space/larm-hubo/build/kickoff' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake /home/s2c7/ros_space/larm-hubo/kickoff -DCMAKE_INSTALL_PREFIX=/home/s2c7/ros_space/larm-hubo/install/kickoff
-Invoking command in '/home/s2c7/ros_space/larm-hubo/build/kickoff': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --build /home/s2c7/ros_space/larm-hubo/build/kickoff -- -j8 -l8
-Invoked command in '/home/s2c7/ros_space/larm-hubo/build/kickoff' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --build /home/s2c7/ros_space/larm-hubo/build/kickoff -- -j8 -l8
-Invoking command in '/home/s2c7/ros_space/larm-hubo/build/kickoff': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --install /home/s2c7/ros_space/larm-hubo/build/kickoff
-Invoked command in '/home/s2c7/ros_space/larm-hubo/build/kickoff' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --install /home/s2c7/ros_space/larm-hubo/build/kickoff
