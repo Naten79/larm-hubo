@@ -1,0 +1,8 @@
+launch:
+    - node:
+        pkg: "kickoff"
+        exec: "straight.py"
+    - node:
+        pkg: "kickoff"
+        exec: "bressonode"
+

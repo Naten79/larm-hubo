@@ -17,24 +17,24 @@ def main():
     control= StraightCtrl()
     control.initializeRosNode( node )
 
-    # infinite Loop:
+    # Infinite Loop:
     rclpy.spin( node )
 
-    # clean end
+    # Clean end
     node.destroy_node()
     rclpy.shutdown()
 
 # Ros Node Class:
 class StraightCtrl :
     def __init__(self):
-        self.obstacle_droit=False
-        self.obstacle_gauche=False
-        self.fobstacle_droit=False
-        self.fobstacle_gauche=False
+        # Initialize our variables:
+        self.near_right_obstacle=False
+        self.near_left_obstacle=False
+        self.far_right_obstacle=False
+        self.far_left_obstacle=False
         self.last_move = "None"
         self.speed = 0
 
-    
     def initializeRosNode(self, rosNode ):
         # Get logger from the node:
         self._logger= rosNode.get_logger()
@@ -43,6 +43,32 @@ class StraightCtrl :
         self._pubVelocity= rosNode.create_publisher(
             Twist, '/multi/cmd_nav', 10
         )
+
+        # Initialize our parameters:
+        global acc_step
+        global desc_step
+        global distance_near
+        global distance_far
+        global angle_near
+        global angle_far
+
+        rosNode.declare_parameter( 'acc_step', 0.01 )
+        rosNode.declare_parameter( 'desc_step', 0.01 )
+        rosNode.declare_parameter( 'distance_near', 0.3 )
+        rosNode.declare_parameter( 'distance_far', 1.2 )
+        rosNode.declare_parameter( 'angle_near', 1.0 )
+        rosNode.declare_parameter( 'angle_far', 0.5 )
+        
+        acc_step = rosNode.get_parameter( 'acc_step').value
+        desc_step = rosNode.get_parameter( 'desc_step').value
+        distance_near = rosNode.get_parameter( 'distance_near').value
+        distance_far = rosNode.get_parameter( 'distance_far').value
+        angle_near = rosNode.get_parameter( 'angle_near').value
+        angle_far = rosNode.get_parameter( 'angle_far').value
+
+        # Print the parameters:
+        print( f"> Acceleration step value: {acc_step} m/s \n> Desceleration step value: {desc_step} m/s\n> Max nearby scan distance value: {distance_near} m\n> Max far scan distance value:: {distance_far} m\n> Nearby scan angle value: {angle_near} rad\n> Far scan angle value: {angle_far} rad\nCurrent speed: 0 m/s" )
+        
 
         # Initialize scan callback:
         self._subToScan= rosNode.create_subscription(
@@ -58,69 +84,72 @@ class StraightCtrl :
     def scan_callback(self, scanMsg ):
         global rosNode
         angle= scanMsg.angle_min
-        L_obs = 0
-        R_obs = 0
-        fL_obs = 0
-        fR_obs = 0
-        for aDistance in scanMsg.ranges :
-            if 0.1<aDistance and aDistance < 0.3 and abs(angle)<1:
-                if angle>0:
-                    L_obs = L_obs + 1
-                else:
-                    R_obs = R_obs + 1
 
-            if 0.3<aDistance and aDistance < 1.2 and abs(angle)<0.5:
+        # Initialize our variables:
+        L_obs = 0   # Ammount of nearby obstacles on the left
+        R_obs = 0   # Ammount of nearby obstacles on the right
+        fL_obs = 0  # Ammount of far obstacles on the left
+        fR_obs = 0  # Ammount of far obstacles on the right
+
+        # Count the ammount of obstacles nearby
+        for aDistance in scanMsg.ranges :
+            if 0.1<aDistance and aDistance < distance_near and abs(angle)<angle_near:
                 if angle>0:
-                    fL_obs = fL_obs + 1
+                    L_obs += 1
                 else:
-                    fR_obs = fR_obs + 1
+                    R_obs += 1
+
+        # Count the ammount of obstacles far away
+            if distance_near<aDistance and aDistance < distance_far and abs(angle)<angle_far:
+                if angle>0:
+                    fL_obs += 1
+                else:
+                    fR_obs += 1
+
             angle+= scanMsg.angle_increment
 
-        if L_obs + R_obs > 20:
-            if L_obs > R_obs:
-                self.obstacle_gauche=True
-                self.obstacle_droit=False
-            else:
-                self.obstacle_gauche=False
-                self.obstacle_droit=True
-        else:
-            self.obstacle_gauche=False
-            self.obstacle_droit=False
-
-        if fL_obs + fR_obs > 2:
-            if fL_obs > fR_obs:
-                self.fobstacle_gauche=True
-                self.fobstacle_droit=False
-            else:
-                self.fobstacle_gauche=False
-                self.fobstacle_droit=True
-        else:
-            self.fobstacle_gauche=False
-            self.fobstacle_droit=False
+        # Update the variables
+        self.near_left_obstacle=False
+        self.near_right_obstacle=False
+        if L_obs + R_obs > 20:  # Nearby obstacle detected
+            if L_obs > R_obs:   #Obstacle on the left 
+                self.near_left_obstacle=True
+                self.near_right_obstacle=False
+            else:               #Obstacle on the right
+                self.near_left_obstacle=False
+                self.near_right_obstacle=True
+        
+        self.far_left_obstacle=False
+        self.far_right_obstacle=False
+        if fL_obs > fR_obs:     # Far obstacle on the left
+            self.far_left_obstacle=True
+            self.far_right_obstacle=False
+        else:                   # Far obstacle on the right
+            self.far_left_obstacle=False
+            self.far_right_obstacle=True
+            
 
     def control_callback(self):
         v=Twist()
-        acc_step = 0.01
-        desc_step = 0.01
-        if not self.obstacle_droit and not self.obstacle_gauche and not self.fobstacle_droit and  not self.fobstacle_gauche:
+        # Move the robot
+        if not self.near_right_obstacle and not self.near_left_obstacle and not self.far_right_obstacle and  not self.far_left_obstacle:
             if not self.last_move=="Go straight" and not self.last_move=="Straight left" and not self.last_move=="Straight right":
                 self.speed=0.05
                 v.angular.z=0.0
                 self.last_move = "Go straight"
             else:
                 self.speed = max(self.speed + acc_step, 0.4)
-
-        if self.obstacle_droit and not self.obstacle_gauche:
+        if self.near_right_obstacle and not self.near_left_obstacle:
             v.angular.z= math.pi/2
             self.speed=0.0
             self.last_move = "Turn left"
 
-        if self.obstacle_gauche and not self.obstacle_droit:
+        if self.near_left_obstacle and not self.near_right_obstacle:
             v.angular.z= -math.pi/2
             self.speed=0.0
             self.last_move = "Turn right"
 
-        if self.obstacle_gauche and self.obstacle_droit:
+        if self.near_left_obstacle and self.near_right_obstacle:
             if self.last_move == "Turn right":
                 v.angular.z= -math.pi/2
                 self.speed=0.0
@@ -132,35 +161,32 @@ class StraightCtrl :
                 self.speed=0.0
                 self.last_move = "Turn left"
 
-
-
-        print(self.speed)
-        angle = math.pi/max(self.speed,0.1)*4
-        if self.fobstacle_droit and not self.fobstacle_gauche:
-            v.angular.z= angle
+        curve_speed_rotation = math.pi/max(self.speed,0.1)*4
+        if self.far_right_obstacle and not self.far_left_obstacle:
+            v.angular.z= curve_speed_rotation
             self.speed = max(self.speed-desc_step,0.25)
             self.last_move = "Straight left"
 
-        if self.fobstacle_gauche and not self.fobstacle_droit:
-            v.angular.z= -angle
+        if self.far_left_obstacle and not self.far_right_obstacle:
+            v.angular.z= -curve_speed_rotation
             self.speed = max(self.speed-desc_step,0.25)
             self.last_move = "Straight right"
 
-        if self.fobstacle_gauche and self.fobstacle_droit:
+        if self.far_left_obstacle and self.far_right_obstacle:
             if self.last_move == "Straight right":
-                v.angular.z= -angle
+                v.angular.z= -curve_speed_rotation
                 self.speed = max(self.speed-desc_step,0.25)
 
             if self.last_move == "Straight left":
-                v.angular.z= angle
+                v.angular.z= curve_speed_rotation
                 self.speed = max(self.speed-desc_step,0.25)
             else: 
-                v.angular.z= angle
+                v.angular.z= curve_speed_rotation
                 self.speed = max(self.speed-desc_step,0.25)
                 self.last_move = "Straight left"    
 
-        print(self.speed)
         v.linear.x = self.speed
+        print(f"\0>Current speed: {v.linear.x} m/s")
         self._pubVelocity.publish(v)
 
 # Go:
