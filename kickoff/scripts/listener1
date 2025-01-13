@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+import rclpy
+import numpy as np
+import matplotlib.pyplot as plt
+from rclpy.node import Node
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+from kobuki_ros_interfaces.msg import Sound
+
+from cv_bridge import CvBridge
+import cv2
+import time
+
+
+isOk=True
+def listen():
+    # Initialize ROS node with ROS client
+    time.time()
+    rclpy.init()
+    aNode= Node( "listener" )
+    listener= ROSListener1()
+    listener.initializelistener(aNode)
+    rclpy.spin(aNode)
+
+    # Clean everything and switch the light off
+    aNode.destroy_node()
+    rclpy.shutdown()
+
+class ROSListener1():
+
+    def __init__(self):
+        self.objet=False
+        self.bridge=CvBridge()
+        self.image_cv2=np.asanyarray([])
+        self.sound=Sound()
+        self.sound._value=3
+
+
+
+    def initializelistener(self, rosNode):
+        self._logger= rosNode.get_logger()
+        self._subscription= rosNode.create_subscription(
+            Image, 'sensor_msgs/image',
+            self.listener_callback1,10)
+        self._publisher=rosNode.create_publisher(Sound,'/commands/sound',10)
+        self._timer1=rosNode.create_timer(0.1,self.traitement_image)
+        
+
+    def listener_callback1(self,msg):
+        self.image_cv2=self.bridge.imgmsg_to_cv2(msg,'bgr8')
+
+
+    def traitement_image(self):
+        compteurpixels=0
+        b,g,r = cv2.split(self.image_cv2)
+        mask=np.uint8((r<90)&(g>80)&(b<90))
+        r=r*mask
+        g=g*mask
+        b=b*mask
+        newRGBImage = cv2.merge((b,g,r))
+        mask_RGB=cv2.merge((mask,mask,mask))*255
+        kernel = np.ones((3, 3), np.uint8)
+        mask_RGB= cv2.morphologyEx(mask_RGB, cv2.MORPH_OPEN, kernel)
+        for i in range(len(mask_RGB)):
+            for j in range(len(mask_RGB[0])):
+                if mask_RGB[i][j][0]==255:
+                    if mask_RGB[i][j][1]==255:
+                        if mask_RGB[i][j][2]==255:
+
+                            compteurpixels+=1
+        # Show images
+        images = np.hstack((mask_RGB))
+
+        # Show images
+        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('RealSense', images)
+        cv2.waitKey(1)
+        if compteurpixels>2000:
+            print(str(time.time())+':'+'fantôme vert trouvé')
+            self._publisher.publish(self.sound)
+            
+
+        
+        
+
+
+
+
+
+if __name__ == '__main__':
+    listen()

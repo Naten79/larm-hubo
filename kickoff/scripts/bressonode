@@ -1,0 +1,95 @@
+#!/usr/bin/python3
+import rclpy
+import time
+import math
+import pyrealsense2 as rs
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+from sensor_msgs.msg import Image
+import signal, numpy as np
+import sys, cv2
+from cv_bridge import CvBridge
+
+
+isOk=True
+# Node processes:
+def mainFunction(args=None):
+    # Initialize ROS Node connected to the camera
+    rclpy.init(args=args)
+    rosNode= Node( "RealSense_driver" )
+    camera= Realsense()
+    camera.initializeROSNode( rosNode )
+
+    # Start infinite loop
+    while isOk:
+        camera.read_imgs()
+        camera.publish_imgs()
+        rclpy.spin_once(rosNode, timeout_sec=0.001)
+
+    # Clean end
+    camera.disconnect()
+    rosNode.destroy_node()
+    rclpy.shutdown()
+
+def signalInteruption(signum, frame):
+            global isOk
+            print( "\nCtrl-c pressed" )
+            isOk= False
+
+# Realsense Node:
+class Realsense():
+    def __init__(self, fps= 60):
+        self.pip=rs.pipeline()
+        self.config=rs.config()
+        self.bridge=CvBridge()
+        self.depth_image=np.asanyarray([])
+        self.color_image=np.asanyarray([])
+    
+
+        self.config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, 60)
+        self.config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 60)
+
+        self.pip.start(self.config)
+
+        count= 1
+        refTime= time.process_time()
+        freq= 60
+        # Connect the camera
+
+    def initializeROSNode( self, aROSNode ):
+        self._pubImg=aROSNode.create_publisher(Image,'sensor_msgs/image',10)
+
+
+
+    def read_imgs(self):
+        frames = self.pip.wait_for_frames()
+
+        color_frame = frames.first(rs.stream.color)
+        depth_frame = frames.first(rs.stream.depth)
+        # Convert images to numpy arrays
+        self.depth_image = np.asanyarray(depth_frame.get_data())
+        self.color_image = np.asanyarray(color_frame.get_data())
+
+        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(self.depth_image, alpha=0.03), cv2.COLORMAP_JET)
+
+        depth_colormap_dim = depth_colormap.shape
+        color_colormap_dim = self.color_image.shape
+
+
+    def publish_imgs(self):
+
+
+        msg_image = self.bridge.cv2_to_imgmsg(self.color_image,"bgr8")
+        #msg_image.header.stamp = self.get_clock().now().to_msg()
+        #msg_image.header.frame_id = "image"
+        self._pubImg.publish(msg_image)
+
+    def disconnect(self):
+        print("\nEnding...")
+        self.pip.stop()
+
+                    
+# Go:
+if __name__ == '__main__' :
+    mainFunction()
+
