@@ -12,7 +12,7 @@ launch:
         pkg: "rviz2"
         exec: "rviz2"
         name: "rviz2"
-        args: "-d $(find-pkg-share kickoff)/config/config.rviz"
+        args: "-d $(find-pkg-share grp_pibot27)/config/config.rviz"
 
     
 
