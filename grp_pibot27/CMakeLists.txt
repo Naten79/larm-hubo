@@ -42,7 +42,7 @@ install(DIRECTORY
 install( PROGRAMS scripts/move.py DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/bressonode DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/listener1 DESTINATION lib/${PROJECT_NAME} )
-
+install( PROGRAMS scripts/movegazebo.py DESTINATION lib/${PROJECT_NAME} )
 
 install( PROGRAMS config/config.rviz DESTINATION lib/${PROJECT_NAME} )
 

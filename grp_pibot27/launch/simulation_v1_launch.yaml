@@ -3,12 +3,12 @@ launch:
       file: "$(find-pkg-share tbot_sim)/launch/challenge-1.launch.py"
   - node:
       pkg: "grp_pibot27"
-      exec: "move.py"
-      name: "move"
+      exec: "movegazebo.py"
+      name: "movegazebo"
       param:
         - { name: "/multi/cmd_nav", value: 'cmd_vel' }
   - node:
       pkg: "rviz2"
       exec: "rviz2"
       name: "rviz2"
-      args: "-d $(find-pkg-share pibot27)/config/config.rviz"
+      args: "-d $(find-pkg-share grp_pibot27)/config/config.rviz"
