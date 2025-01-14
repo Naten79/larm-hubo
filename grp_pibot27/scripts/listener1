@@ -1,0 +1,82 @@
+#!/usr/bin/python3
+import rclpy
+import numpy as np
+import matplotlib.pyplot as plt
+from rclpy.node import Node
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+from kobuki_ros_interfaces.msg import Sound
+
+from cv_bridge import CvBridge
+import cv2
+import time
+
+
+isOk=True
+def listen():
+    # Initialize ROS node with ROS client
+    time.time()
+    rclpy.init()
+    aNode= Node( "listener" )
+    listener= ROSListener1()
+    listener.initializelistener(aNode)
+    rclpy.spin(aNode)
+
+    # Clean everything and switch the light off
+    aNode.destroy_node()
+    rclpy.shutdown()
+
+class ROSListener1():
+
+    def __init__(self):
+        self.objet=False
+        self.bridge=CvBridge()
+        self.image_cv2=np.asanyarray([])
+        self.sound=Sound()
+        self.sound._value=4
+
+    def initializelistener(self, rosNode):
+        self._logger= rosNode.get_logger()
+        self._subscription= rosNode.create_subscription(
+            Image, 'sensor_msgs/image',
+            self.listener_callback1,10)
+        self._publisher=rosNode.create_publisher(Sound,'/commands/sound',10)
+        self._timer1=rosNode.create_timer(0.1,self.traitement_image)
+        
+
+    def listener_callback1(self,msg):
+        self.image_cv2=  self.bridge.imgmsg_to_cv2(msg,'bgr8')  
+
+
+    def traitement_image(self):
+        compteurpixels=0
+        upper_green = np.array([75,255,255])
+        lower_green = np.array([45,50,50])
+
+        img = cv2.cvtColor(self.image_cv2, cv2.COLOR_BGR2HSV) 
+        mask = cv2.inRange(img, lower_green, upper_green)
+        resultHSV = cv2.bitwise_and(img, img, mask=mask)
+        result = cv2.cvtColor(resultHSV, cv2.COLOR_HSV2BGR)
+        for i in range (len(result)):
+            for j in range (len(result[i])):
+                if max(result[i][j])>0:
+                    compteurpixels += 1
+        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('Image Seuillée', result)
+        cv2.waitKey(1)
+
+
+        if compteurpixels>1500:
+            print(str(time.time())+':'+'fantôme vert trouvé')
+            self._publisher.publish(self.sound)
+            
+
+        
+        
+
+
+
+
+
+if __name__ == '__main__':
+    listen()

@@ -1,0 +1,18 @@
+launch:
+    - node:
+        pkg: "grp_pibot27"
+        exec: "move.py"
+    - node:
+        pkg: "grp_pibot27"
+        exec: "bressonode"
+    - node:
+        pkg: "grp_pibot27"
+        exec: "listener1"
+    - node:
+        pkg: "rviz2"
+        exec: "rviz2"
+        name: "rviz2"
+        args: "-d $(find-pkg-share kickoff)/config/config.rviz"
+
+    
+
