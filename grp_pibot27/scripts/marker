@@ -1,0 +1,79 @@
+#!/usr/bin/python3
+import rclpy
+import numpy as np
+import matplotlib.pyplot as plt
+from rclpy.node import Node
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+from kobuki_ros_interfaces.msg import Sound
+from visualization_msgs.msg import Marker
+from cv_bridge import CvBridge
+from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Quaternion
+import cv2
+import time
+
+
+def listen():
+    # Initialize ROS node with ROS client
+   
+    rclpy.init()
+    aNode= Node( "listener" )
+    listener= ROSListener()
+    listener.initializelistener(aNode)
+    rclpy.spin(aNode)
+
+    # Clean everything and switch the light off
+    aNode.destroy_node()
+    rclpy.shutdown()
+
+
+class ROSListener():
+
+    def __init__(self):
+        self.mot=String()
+        self.incr=0.0
+        self.marker=Marker()
+        self.marker.header.frame_id='base_link'
+
+        self.marker.action=Marker.ADD
+        self.marker.type=Marker.ARROW
+        self.marker.scale.x = 1.0
+        self.marker.scale.y = 1.0
+        self.marker.scale.z = 1.0
+        self.marker.color.a=1.0
+        self.marker.color.r=0.0
+        self.marker.color.g=1.0
+        self.marker.color.b=0.0
+        self.marker.pose = Pose()
+        self.marker.pose.position = Point(x=1.0, y=1.0, z=1.0)
+        self.marker.pose.orientation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+
+
+    def initializelistener(self, rosNode):
+        self._logger= rosNode.get_logger()
+        self._publisher=rosNode.create_publisher(Marker,'visualization_msgs/marker',10)
+        self._sub=rosNode.create_subscription(String,'detection',self.listener_callback,10)
+
+        # Publish a message every 1 second
+        timer_period = 1  # seconds
+        self._timer = rosNode.create_timer(timer_period, self.publish_marker)
+    
+    
+    def listener_callback(self,msg):
+        self.mot=msg
+
+
+    def publish_marker(self):
+        if self.mot.data=="fantome trouvé":
+            self.marker.header.stamp = rclpy.time.Time().to_msg()  # Set the timestamp
+            self._publisher.publish(self.marker)
+            self._logger.info('Publishing marker: {}'.format(self.marker))
+            self.incr=self.incr+0.01
+            self.marker.pose.position = Point(x=1.0+self.incr, y=1.0, z=1.0)
+
+        
+
+if __name__ == '__main__':
+    listen()

@@ -6,11 +6,14 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from kobuki_ros_interfaces.msg import Sound
+from ultralytics import YOLO
 
 from cv_bridge import CvBridge
 import cv2
 import time
 
+model = YOLO("/home/s2c7/ros_space/larm-hubo/ia_image_detection/runs/detect/train3/weights/last.pt")
+threshold = 0.5
 
 isOk=True
 def listen():
@@ -34,6 +37,8 @@ class ROSListener1():
         self.image_cv2=np.asanyarray([])
         self.sound=Sound()
         self.sound._value=4
+        self.mot=String()
+        self.mot.data="fantome trouvé"
 
     def initializelistener(self, rosNode):
         self._logger= rosNode.get_logger()
@@ -41,6 +46,7 @@ class ROSListener1():
             Image, 'sensor_msgs/image',
             self.listener_callback1,10)
         self._publisher=rosNode.create_publisher(Sound,'/commands/sound',10)
+        self._publisher1=rosNode.create_publisher(String,'detection',10)
         self._timer1=rosNode.create_timer(0.1,self.traitement_image)
         
 
@@ -49,34 +55,20 @@ class ROSListener1():
 
 
     def traitement_image(self):
-        compteurpixels=0
-        upper_green = np.array([75,255,255])
-        lower_green = np.array([45,50,50])
+        frame = self.image_cv2 
+        results = model(frame)[0]
+        for result in results.boxes.data.tolist():
+            x1, y1, x2, y2, score, class_id = result
+            height = y2 - y1
+            if score > threshold:
+                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+                cv2.putText(frame, results.names[int(class_id)].upper(), 
+                            (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+                self._publisher.publish(self.sound)
 
-        img = cv2.cvtColor(self.image_cv2, cv2.COLOR_BGR2HSV) 
-        mask = cv2.inRange(img, lower_green, upper_green)
-        resultHSV = cv2.bitwise_and(img, img, mask=mask)
-        result = cv2.cvtColor(resultHSV, cv2.COLOR_HSV2BGR)
-        for i in range (len(result)):
-            for j in range (len(result[i])):
-                if max(result[i][j])>0:
-                    compteurpixels += 1
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('Image Seuillée', result)
+        cv2.imshow("Camera", frame)
         cv2.waitKey(1)
-
-
-        if compteurpixels>1500:
-            print(str(time.time())+':'+'fantôme vert trouvé')
-            self._publisher.publish(self.sound)
-            
-
-        
-        
-
-
-
-
 
 if __name__ == '__main__':
     listen()

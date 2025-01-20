@@ -1,0 +1,7 @@
+path: C:\Users\natha\Stockage\programmation\ia_image_detection
+train: images
+val: images
+
+names:
+  0: ghost
+  1: bottle
