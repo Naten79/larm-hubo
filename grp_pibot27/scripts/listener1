@@ -34,6 +34,7 @@ class ROSListener1():
     def __init__(self):
         self.objet=False
         self.bridge=CvBridge()
+        self.bridge1=CvBridge()
         self.image_cv2=np.asanyarray([])
         self.sound=Sound()
         self.sound._value=4
@@ -45,13 +46,18 @@ class ROSListener1():
         self._subscription= rosNode.create_subscription(
             Image, 'sensor_msgs/image',
             self.listener_callback1,10)
+        self._sub=rosNode.create_subscription(Image,'depth',self.listener_callback2,10)
         self._publisher=rosNode.create_publisher(Sound,'/commands/sound',10)
         self._publisher1=rosNode.create_publisher(String,'detection',10)
         self._timer1=rosNode.create_timer(0.1,self.traitement_image)
         
 
     def listener_callback1(self,msg):
-        self.image_cv2=  self.bridge.imgmsg_to_cv2(msg,'bgr8')  
+        self.image_cv2=  self.bridge.imgmsg_to_cv2(msg,'bgr8') 
+
+
+    def listener_callback2(self,msg):
+        self.image_profondeur=self.bridge1.imgmsg_to_cv2(msg,'bgr8')
 
 
     def traitement_image(self):
@@ -65,9 +71,9 @@ class ROSListener1():
                 cv2.putText(frame, results.names[int(class_id)].upper(), 
                             (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
                 "self._publisher.publish(self.sound)"
-
+        images=np.hstack((self.image_cv2,self.image_profondeur))
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow("Camera", frame)
+        cv2.imshow("Camera", images)
         cv2.waitKey(1)
 
 if __name__ == '__main__':

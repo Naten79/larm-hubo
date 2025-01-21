@@ -42,6 +42,7 @@ class Realsense():
         self.pip=rs.pipeline()
         self.config=rs.config()
         self.bridge=CvBridge()
+        self.bridge1=CvBridge()
         self.depth_image=np.asanyarray([])
         self.color_image=np.asanyarray([])
     
@@ -58,6 +59,7 @@ class Realsense():
 
     def initializeROSNode( self, aROSNode ):
         self._pubImg=aROSNode.create_publisher(Image,'sensor_msgs/image',10)
+        self._pub=aROSNode.create_publisher(Image,'depth',10)
 
 
 
@@ -70,19 +72,19 @@ class Realsense():
         self.depth_image = np.asanyarray(depth_frame.get_data())
         self.color_image = np.asanyarray(color_frame.get_data())
 
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(self.depth_image, alpha=0.03), cv2.COLORMAP_JET)
+        self.depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(self.depth_image, alpha=0.03), cv2.COLORMAP_JET)
 
-        depth_colormap_dim = depth_colormap.shape
-        color_colormap_dim = self.color_image.shape
+      
 
 
     def publish_imgs(self):
 
-
+        msg_prof=self.bridge1.cv2_to_imgmsg(self.depth_colormap,"bgr8")
         msg_image = self.bridge.cv2_to_imgmsg(self.color_image,"bgr8")
         #msg_image.header.stamp = self.get_clock().now().to_msg()
         #msg_image.header.frame_id = "image"
         self._pubImg.publish(msg_image)
+        self._pub.publish(msg_prof)
 
     def disconnect(self):
         print("\nEnding...")
