@@ -5,12 +5,14 @@ import matplotlib.pyplot as plt
 from rclpy.node import Node
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
-from kobuki_ros_interfaces.msg import Sound
+#from kobuki_ros_interfaces.msg import Sound
 from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
 from cv_bridge import CvBridge
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Quaternion
+from std_msgs.msg import String
 import cv2
 import time
 
@@ -29,51 +31,88 @@ def listen():
     rclpy.shutdown()
 
 
+
 class ROSListener():
 
     def __init__(self):
+        self.L=[]
+        self.bool = 0
+        self.b = 1
+        self.coord = []
+        self.compteur = 0
         self.mot=String()
         self.incr=0.0
-        self.marker=Marker()
-        self.marker.header.frame_id='base_link'
-
-        self.marker.action=Marker.ADD
-        self.marker.type=Marker.ARROW
-        self.marker.scale.x = 1.0
-        self.marker.scale.y = 1.0
-        self.marker.scale.z = 1.0
-        self.marker.color.a=1.0
-        self.marker.color.r=0.0
-        self.marker.color.g=1.0
-        self.marker.color.b=0.0
-        self.marker.pose = Pose()
-        self.marker.pose.position = Point(x=1.0, y=1.0, z=1.0)
-        self.marker.pose.orientation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+        self.marker=MarkerArray()
+        self.marker1=Marker()
+        self.marker1.header.frame_id='map'
+        self.marker1.id=0
+        self.marker1.ns="/marker"
+        self.marker1.action=Marker.ADD
+        self.marker1.type=Marker.CUBE
+        self.marker1.scale.x = 0.5
+        self.marker1.scale.y = 0.5
+        self.marker1.scale.z = 0.5
+        self.marker1.color.a=1.0
+        self.marker1.color.r=0.0
+        self.marker1.color.g=0.0
+        self.marker1.color.b=0.0
+        self.marker1.pose = Pose()
+        self.marker1.pose.position = Point(x=0.0, y=0.0, z=0.0)
+        self.marker1.pose.orientation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+        
+        self.marker.markers.append(self.marker1)
 
 
     def initializelistener(self, rosNode):
         self._logger= rosNode.get_logger()
-        self._publisher=rosNode.create_publisher(Marker,'visualization_msgs/marker',10)
+        self._publisher1=rosNode.create_publisher(MarkerArray,'visualization_msgs/marker',10)
+
         self._sub=rosNode.create_subscription(String,'detection',self.listener_callback,10)
 
         # Publish a message every 1 second
-        timer_period = 1  # seconds
+        timer_period = 1 # seconds
         self._timer = rosNode.create_timer(timer_period, self.publish_marker)
     
     
     def listener_callback(self,msg):
         self.mot=msg
 
-
     def publish_marker(self):
-        if self.mot.data=="fantome trouvé":
-            self.marker.header.stamp = rclpy.time.Time().to_msg()  # Set the timestamp
-            self._publisher.publish(self.marker)
-            self._logger.info('Publishing marker: {}'.format(self.marker))
-            self.incr=self.incr+0.01
-            self.marker.pose.position = Point(x=1.0+self.incr, y=1.0, z=1.0)
-
-        
+        if self.mot.data!='':
+            self.coord.append(float(self.mot.data.split(',',2)[0]))
+            self.coord.append(float(self.mot.data.split(',',2)[1]))
+            if self.coord!=[]:
+                self.L.append(self.coord)
+                self.coord=[]
+                self.compteur=self.compteur+1
+                for point in self.L:
+                    for p in self.L:
+                        if p[0] == point[0] and p[1] == point[1]:
+                            self.bool = self.bool+1
+                    if self.bool<2:
+                        m = Marker()
+                        m.action=Marker.ADD
+                        m.type=Marker.CUBE
+                        m.header.frame_id='map'
+                        m.id=self.b
+                        m.ns="marker"+str(m.id)
+                        m.scale.x = 0.2
+                        m.scale.y = 0.2
+                        m.scale.z = 0.2
+                        m.color.a=1.0
+                        m.color.r=0.0
+                        m.color.g=1.0
+                        m.color.b=0.0
+                        m.pose = Pose()
+                        m.pose.position = Point(x=point[0], y=point[1], z=0.0)
+                        m.pose.orientation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+                        self.marker.markers.append(m)
+                        self.b+=1
+                        self.bool = 0
+                    #self.marker.header.stamp = rclpy.time.Time().to_msg()  # Set the timestamp
+                self._publisher1.publish(self.marker)
+                    #self._logger.info('Publishing marker: {}'.format(self.marker))
+                    #self.marker.pose.position = Point(x=1.0, y=1.0, z=1.0)
 
 if __name__ == '__main__':
     listen()
