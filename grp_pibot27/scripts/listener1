@@ -7,9 +7,10 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from kobuki_ros_interfaces.msg import Sound
 from ultralytics import YOLO
-
+import pyrealsense2 as rs
 from cv_bridge import CvBridge
 import cv2
+import math
 import time
 
 model = YOLO("/home/s2c7/ros_space/larm-hubo/ia_image_detection/runs/detect/train3/weights/last.pt")
@@ -46,34 +47,65 @@ class ROSListener1():
         self._subscription= rosNode.create_subscription(
             Image, 'sensor_msgs/image',
             self.listener_callback1,10)
-        self._sub=rosNode.create_subscription(Image,'depth',self.listener_callback2,10)
         self._publisher=rosNode.create_publisher(Sound,'/commands/sound',10)
         self._publisher1=rosNode.create_publisher(String,'detection',10)
         self._timer1=rosNode.create_timer(0.1,self.traitement_image)
+
         
 
     def listener_callback1(self,msg):
-        self.image_cv2=  self.bridge.imgmsg_to_cv2(msg,'bgr8') 
-
+        self.image_cv2=  self.bridge.imgmsg_to_cv2(msg,'bgr8')  
 
     def listener_callback2(self,msg):
-        self.image_profondeur=self.bridge1.imgmsg_to_cv2(msg,'bgr8')
-
+        self.image_profondeur=  self.bridge1.imgmsg_to_cv2(msg,'bgr8')  
 
     def traitement_image(self):
         frame = self.image_cv2 
+        image_width = frame.shape[1]
+        image_height = frame.shape[0]
+        half_image_width = image_width / 2
+
         results = model(frame)[0]
         for result in results.boxes.data.tolist():
             x1, y1, x2, y2, score, class_id = result
-            height = y2 - y1
             if score > threshold:
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
                 cv2.putText(frame, results.names[int(class_id)].upper(), 
                             (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-                "self._publisher.publish(self.sound)"
-        images=np.hstack((self.image_cv2,self.image_profondeur))
+                
+                # Calculate the center of the bounding box
+                center_x_rgb = (x1 + x2) / 2
+                center_y_rgb = (y1 + y2) / 2
+                
+                # Horizontal distance from image center
+                horizontal_pixel_distance = center_x_rgb - half_image_width
+                
+                # Calculate alpha, the horizontal angle
+                fov_rgb_h = 69.4  # Horizontal field of view of the RGB camera
+                alpha = math.degrees(math.atan(horizontal_pixel_distance * math.tan(math.radians(fov_rgb_h / 2)) / half_image_width))
+                
+                # Convert RGB coordinates to depth coordinates
+                fov_rgb_v = 42.5
+                fov_depth_h = 87
+                fov_depth_v = 58
+                
+                # Compute scaling factors for depth image mapping
+                scale_x = math.tan(math.radians(fov_depth_h / 2)) / math.tan(math.radians(fov_rgb_h / 2))
+                scale_y = math.tan(math.radians(fov_depth_v / 2)) / math.tan(math.radians(fov_rgb_v / 2))
+                
+                # Map the center of the bounding box from RGB to depth coordinates
+                center_x_depth = center_x_rgb * scale_x
+                center_y_depth = center_y_rgb * scale_y
+                
+                # Get distance from the depth frame
+                d = rs.depth_frame.get_distance(int(center_x_depth), int(center_y_depth))
+                
+                # Publish the distance and alpha angle
+                print(d, alpha)
+                self._publisher1.publish(f"{d},{alpha}")
+
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow("Camera", images)
+        cv2.imshow("Camera", frame)
         cv2.waitKey(1)
 
 if __name__ == '__main__':
