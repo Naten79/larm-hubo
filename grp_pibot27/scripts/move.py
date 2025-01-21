@@ -3,6 +3,10 @@ import rclpy
 from  rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+from kobuki_ros_interfaces.msg import BumperEvent
+from kobuki_ros_interfaces.msg import ButtonEvent
+from kobuki_ros_interfaces.msg import WheelDropEvent
+from kobuki_ros_interfaces.msg import CliffEvent
 import sys
 import math
 import time
@@ -35,6 +39,8 @@ class StraightCtrl :
         self.last_move = "None"
         self.speed = 0.0
         self.angular_speed = 0.0
+        self.bumper=False
+        self.button=False
 
     def initializeRosNode(self, rosNode ):
         # Get logger from the node:
@@ -78,6 +84,10 @@ class StraightCtrl :
         
 
         # Initialize scan callback:
+        self._sub1=rosNode.create_subscription(BumperEvent,'/events/bumper',self.listener_callback1,10)
+        self._sub2=rosNode.create_subscription(ButtonEvent,'/events/button',self.listener_callback2,10)
+        self._sub3=rosNode.create_subscription(WheelDropEvent,'/events/wheel_drop',self.listener_callback3,10)
+        self._sub4=rosNode.create_subscription(CliffEvent,'/events/cliff',self.listener_callback4,10)
         self._subToScan= rosNode.create_subscription(
             LaserScan, '/scan',
             self.scan_callback, 10
@@ -87,7 +97,27 @@ class StraightCtrl :
         self._timForCtrl= rosNode.create_timer(
             0.05, self.control_callback
         )
+    def listener_callback1(self,msg):
+        if msg.state==BumperEvent.PRESSED:
+            
+            self.bumper=True
+            
 
+    def listener_callback2(self,msg):
+        if msg.state==ButtonEvent.PRESSED:
+            self.button=True
+        if self.button:
+            self.bumper=False
+
+    def listener_callback3(self,msg):
+        if msg.state==1:
+            self.bumper=True
+        if msg.state==0:
+            self.bumper==False
+    def listener_callback4(self,msg):
+        if msg.state==CliffEvent.CLIFF:
+            self.bumper=True
+        
     def scan_callback(self, scanMsg ):
         global rosNode
         angle= scanMsg.angle_min
@@ -138,44 +168,46 @@ class StraightCtrl :
             
 
     def control_callback(self):
-        v=Twist()
-        # Move the robot
-        if not self.near_right_obstacle and not self.near_left_obstacle and not self.far_right_obstacle and not self.far_left_obstacle:
-            self.speed = min(self.speed + acc_step, max_speed)
-            self.angular_speed=0.0
-            self.last_move = "Straight"
-        curve_speed_rotation = math.pi/3
+        print(self.bumper)
+        if self.bumper==False:
+            v=Twist()
+            # Move the robot
+            if not self.near_right_obstacle and not self.near_left_obstacle and not self.far_right_obstacle and not self.far_left_obstacle:
+                self.speed = min(self.speed + acc_step, max_speed)
+                self.angular_speed=0.0
+                self.last_move = "Straight"
+            curve_speed_rotation = math.pi/3
 
 
-        if self.far_right_obstacle and not self.far_left_obstacle and not self.last_move == "Straight right" and not self.last_move == "Turn right":
-            self.angular_speed= curve_speed_rotation
-            self.speed = max(self.speed - desc_step, 0.3)
-            self.last_move = "Straight left"
+            if self.far_right_obstacle and not self.far_left_obstacle and not self.last_move == "Straight right" and not self.last_move == "Turn right":
+                self.angular_speed= curve_speed_rotation
+                self.speed = max(self.speed - desc_step, 0.3)
+                self.last_move = "Straight left"
 
-        if self.far_left_obstacle and not self.far_right_obstacle and not self.last_move == "Straight left" and not self.last_move == "Turn left":
-            self.angular_speed= -curve_speed_rotation
-            self.speed = min(self.speed + acc_step, max_speed)
-            self.last_move = "Straight right"
-
-
+            if self.far_left_obstacle and not self.far_right_obstacle and not self.last_move == "Straight left" and not self.last_move == "Turn left":
+                self.angular_speed= -curve_speed_rotation
+                self.speed = min(self.speed + acc_step, max_speed)
+                self.last_move = "Straight right"
 
 
-        if self.near_right_obstacle and not self.near_left_obstacle and not self.last_move=="Turn right" :
-            self.angular_speed= math.pi/2
-            self.speed=0.0
-            self.last_move = "Turn left"
 
-        if self.near_left_obstacle and not self.near_right_obstacle and not self.last_move=="Turn left":
-            self.angular_speed= -math.pi/2
-            self.speed=0.0
-            self.last_move = "Turn right"
+
+            if self.near_right_obstacle and not self.near_left_obstacle and not self.last_move=="Turn right" :
+                self.angular_speed= math.pi/2
+                self.speed=0.0
+                self.last_move = "Turn left"
+
+            if self.near_left_obstacle and not self.near_right_obstacle and not self.last_move=="Turn left":
+                self.angular_speed= -math.pi/2
+                self.speed=0.0
+                self.last_move = "Turn right"
 
 
         
-        v.linear.x = self.speed
-        v.angular.z= self.angular_speed
-        print(f"\0>Current speed: {self.speed} m/s")
-        self._pubVelocity.publish(v)
+            v.linear.x = self.speed
+            v.angular.z= self.angular_speed
+            print(f"\0>Current speed: {self.speed} m/s")
+            self._pubVelocity.publish(v)
 
 # Go:
 if __name__ == '__main__' :

@@ -13,7 +13,7 @@ import cv2
 import time
 
 model = YOLO("/home/s2c7/ros_space/larm-hubo/ia_image_detection/runs/detect/train3/weights/last.pt")
-threshold = 0.5
+threshold = 0.8
 
 isOk=True
 def listen():
@@ -64,7 +64,7 @@ class ROSListener1():
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
                 cv2.putText(frame, results.names[int(class_id)].upper(), 
                             (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-                self._publisher.publish(self.sound)
+                "self._publisher.publish(self.sound)"
 
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow("Camera", frame)
