@@ -30,7 +30,6 @@ def mainFunction(args=None):
     # Start infinite loop
     while isOk:
         camera.read_imgs()
-        camera.publish_imgs()
         rclpy.spin_once(rosNode, timeout_sec=0.001)
 
     # Clean end
@@ -48,6 +47,7 @@ class Realsense():
     def __init__(self, fps= 60):
         self.pip=rs.pipeline()
         self.msg1 = String()
+        self.image_cv2=np.asanyarray([])
         self.config=rs.config()
         self.bridge=CvBridge()
         self.bridge1=CvBridge()
@@ -68,6 +68,7 @@ class Realsense():
         self._pubImg=aROSNode.create_publisher(Image,'sensor_msgs/image',10)
         self._timer1=aROSNode.create_timer(0.1,self.traitement_image)
         self._publisher1=aROSNode.create_publisher(String,'detection',10)
+        self._publisher=aROSNode.create_publisher(Sound,'/commands/sound',10)
 
     def read_imgs(self):
         frames = self.pip.wait_for_frames()
@@ -81,10 +82,7 @@ class Realsense():
 
         # Convert images to numpy arrays
         self.color_image = np.asanyarray(color_frame.get_data())
-
-    def publish_imgs(self):
-        msg_image = self.bridge.cv2_to_imgmsg(self.color_image,"bgr8")
-        self._pubImg.publish(msg_image)
+        
 
     def disconnect(self):
         print("\nEnding...")
@@ -116,6 +114,9 @@ class Realsense():
             
                     print(self.msg1)
                     self._publisher1.publish(self.msg1)
+                    self._publisher.publish(self.sound)
+        msg_image = self.bridge.cv2_to_imgmsg(frame,"bgr8")
+        self._pubImg.publish(msg_image)
 
         # Display the images or further processing
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
