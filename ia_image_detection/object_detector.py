@@ -7,8 +7,8 @@ cam = cv2.VideoCapture(0)
 cv2.namedWindow("Camera")
 
 # Chargement du modèle YOLO
-model = YOLO("C:/Users/natha/Stockage/programmation/ia_image_detection/runs/detect/train2/weights/last.pt")
-threshold = 0.7
+model = YOLO("C:/Users/natha/Stockage/programmation/ia_image_detection/runs/detect/train3/weights/last.pt")
+threshold = 0.5
 
 while True:
     ret, frame = cam.read()
