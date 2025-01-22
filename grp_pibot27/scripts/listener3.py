@@ -46,6 +46,7 @@ class ROSListener1():
         self.coord=message
     
     def coord_base_link(self):
+        print( f"message reçue {self.coord}")
         if self.coord.data!='':
             r=float(self.coord.data.split(',',2)[0])
             alpha=float(self.coord.data.split(',',2)[1])
@@ -54,6 +55,7 @@ class ROSListener1():
 
     def publish_goal(self):
         self.coord_base_link()
+        print( f"message transfo {self.coord}")
         currentTime= rclpy.time.Time()
         stampedTransform= None
         try:

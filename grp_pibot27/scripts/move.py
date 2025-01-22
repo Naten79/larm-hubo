@@ -67,7 +67,7 @@ class StraightCtrl :
         rosNode.declare_parameter( 'distance_far', 1.0 )
         rosNode.declare_parameter( 'angle_near', 2 )
         rosNode.declare_parameter( 'angle_far', 0.5 )
-        rosNode.declare_parameter( 'max_speed', 0.4 )
+        rosNode.declare_parameter( 'max_speed', 0.3 )
         rosNode.declare_parameter( 'min_curve_speed', 0.1 )
         
         acc_step = rosNode.get_parameter( 'acc_step').value

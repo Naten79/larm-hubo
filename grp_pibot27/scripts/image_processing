@@ -105,16 +105,15 @@ class Realsense():
                                 (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
                     x = (x1 + x2) / 2
                     y = (y1 + y2) / 2
-                    d = 15 + self.depth_frame.get_distance(int(x), int(y))
+                    d =  0.15 + self.depth_frame.get_distance(int(x), int(y))
                     fov_x = 69.4  
                     horizontal_pixel_distance = x - half_image_width
                     alpha = math.atan(horizontal_pixel_distance * math.tan(math.radians(fov_x / 2)) / half_image_width)
 
-                    self.msg1.data = str(d) + str(alpha)
-            
-                    print(self.msg1)
+                    self.msg1.data = str(d) + "," + str(alpha)
                     self._publisher1.publish(self.msg1)
-                    self._publisher.publish(self.sound)
+                    print(str(d) + "," + str(alpha))
+                    #self._publisher.publish(self.sound)
         msg_image = self.bridge.cv2_to_imgmsg(frame,"bgr8")
         self._pubImg.publish(msg_image)
 
