@@ -18,7 +18,6 @@ def listen():
     aNode= Node( "listener" )
     essai.initializelistener(aNode)
     rclpy.spin(aNode)
-    # Clean everything and switch the light off
     aNode.destroy_node()
     rclpy.shutdown()
     
@@ -54,11 +53,10 @@ class ROSListener1():
             self.posebase_link.position.y = r*np.sin(alpha)
 
     def publish_goal(self):
+        self.coord_base_link()
         currentTime= rclpy.time.Time()
-        # Get Transformation (import poses referenced in odom into base_link)
         stampedTransform= None
         try:
-            #print('get transform...')
             stampedTransform = self.tf_buffer.lookup_transform(
                         'map',
                         'base_link',
@@ -66,13 +64,8 @@ class ROSListener1():
         except : # (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):TransformException as tex:
             self._logger.info( f"Could not transform poses from 'base_link' into 'map'")
             return
-        # Now transform....
-        #print( f"Transform.  {stampedTransform}" )
         myLocalPose = tf2_geometry_msgs.do_transform_pose( self.posebase_link, stampedTransform )
-        #print( f"Position:  {myLocalPose._position.x}" )
-        #print( f"Results:  {myLocalPose}" )
         self.msg.data=str(myLocalPose._position.x)+","+str(myLocalPose._position.y)                 #la position voulue est transformée en type string afin qu'elle puisse être envoyée sur le topic Apres_tf
-        print( f"Message: {self.msg}")
 
     def control_callback2(self):
         self._pub.publish(self.msg)

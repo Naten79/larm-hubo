@@ -4,10 +4,7 @@ launch:
         exec: "move.py"
     - node:
         pkg: "grp_pibot27"
-        exec: "bressonode"
-    - node:
-        pkg: "grp_pibot27"
-        exec: "listener1"
+        exec: "image_processing"
     - node:
         pkg: "rviz2"
         exec: "rviz2"
