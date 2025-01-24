@@ -36,7 +36,7 @@ class ROSListener1():
         self.posebase_link= Pose()
         self.posebase_link.position.x= 0.0
         self.posebase_link.position.y= 0.0
-        self._pub=rosNode.create_publisher(String,"Apres_tf",10)                            #publie sur le topic "Apres_tf" pour afficher le marqueur
+        self._pub=rosNode.create_publisher(String,"Apres_tf",10)                    
         #self._timForCtrl= rosNode.create_timer(
             #1, self.control_callback2)
         self._sub=rosNode.create_subscription(String,'detection',self.listener_callback1,10)
