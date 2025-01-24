@@ -65,22 +65,24 @@ class Realsense():
         # Connect the camera
 
     def initializeROSNode( self, aROSNode ):
+# Initialize the node
         self._pubImg=aROSNode.create_publisher(Image,'sensor_msgs/image',10)
         self._timer1=aROSNode.create_timer(0.1,self.traitement_image)
         self._publisher1=aROSNode.create_publisher(String,'detection',10)
         self._publisher=aROSNode.create_publisher(Sound,'/commands/sound',10)
 
     def read_imgs(self):
+# Wait for a frame
         frames = self.pip.wait_for_frames()
+# Align both the color and depth camera
         align_to = rs.stream.color
         align = rs.align(align_to)
         aligned_frames =  align.process(frames)
-
         color_frame = aligned_frames.first(rs.stream.color)
-        #color_frame = frames.first(rs.stream.color)
+#color_frame = frames.first(rs.stream.color)
         self.depth_frame = aligned_frames.get_depth_frame()
 
-        # Convert images to numpy arrays
+# Convert images to numpy arrays
         self.color_image = np.asanyarray(color_frame.get_data())
         
 
@@ -89,35 +91,39 @@ class Realsense():
         self.pip.stop()
 
     def traitement_image(self):
+# Get the image frame and the dimensions
         frame = self.color_image 
         image_width = frame.shape[1]
         image_height = frame.shape[0]
         half_image_width = image_width / 2
         half_image_height = image_height / 2
-
+# Apply the YOLO model
         results = model(frame)[0]
         for result in results.boxes.data.tolist():
             x1, y1, x2, y2, score, class_id = result
             if score > threshold:
-                if int(class_id) == 0:
+                if int(class_id) == 0: # If the object detected is a ghost
+# Put a rectangle and text around the object
                     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
                     cv2.putText(frame, results.names[int(class_id)].upper(), 
                                 (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+# Get the coords of the center of the object
                     x = (x1 + x2) / 2
                     y = (y1 + y2) / 2
+# Calculate the distance between the robot and the ghost with the depth map
                     d =  0.15 + self.depth_frame.get_distance(int(x), int(y))
                     fov_x = 69.4  
                     horizontal_pixel_distance = x - half_image_width
+# Calculate the alpha angle between the center axis and the ghost
                     alpha = math.atan(horizontal_pixel_distance * math.tan(math.radians(fov_x / 2)) / half_image_width)
-
+# Publish the final image and d,alpha 
                     self.msg1.data = str(d) + "," + str(alpha)
                     self._publisher1.publish(self.msg1)
                     print(str(d) + "," + str(alpha))
                     #self._publisher.publish(self.sound)
         msg_image = self.bridge.cv2_to_imgmsg(frame,"bgr8")
         self._pubImg.publish(msg_image)
-
-        # Display the images or further processing
+# Display the images
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow("1", frame)
         cv2.waitKey(1)
