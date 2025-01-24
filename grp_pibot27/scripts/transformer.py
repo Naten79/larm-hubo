@@ -26,6 +26,8 @@ def listen():
 class ROSListener1():
 
     def initializelistener(self, rosNode):
+        #initialize the data for the transformation of the coordinates 
+        
         self.msg = String()
         self.coord = String()
         self._logger= rosNode.get_logger()
@@ -37,16 +39,17 @@ class ROSListener1():
         self.posebase_link.position.x= 0.0
         self.posebase_link.position.y= 0.0
         self._pub=rosNode.create_publisher(String,"Apres_tf",10)                    
-        #self._timForCtrl= rosNode.create_timer(
-            #1, self.control_callback2)
         self._sub=rosNode.create_subscription(String,'detection',self.listener_callback1,10)
     
     def listener_callback1(self,message):
+        #get the message from the topic 'detection'
+        
         self.coord=message
         self.publish_goal()
     
     def coord_base_link(self):
-        print( f"message reçue {self.coord}")
+        #transform the coordinates (r,alpha) to (x,y) in base_link
+        
         if self.coord.data!='':
             r=float(self.coord.data.split(',',2)[0])
             alpha=float(self.coord.data.split(',',2)[1])
@@ -54,21 +57,23 @@ class ROSListener1():
             self.posebase_link.position.y = -r*np.sin(alpha)
 
     def publish_goal(self):
+        #transform the coordinates from base_link into map
+        
         self.coord_base_link()
         print( f"message transfo {self.coord}")
         currentTime= rclpy.time.Time()
         stampedTransform= None
         try:
-            stampedTransform = self.tf_buffer.lookup_transform(
+            stampedTransform = self.tf_buffer.lookup_transform(                                        #get the transformation between base_link and map from the topic tf
                         'map',
                         'base_link',
                         currentTime)
-        except : # (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):TransformException as tex:
+        except : 
             self._logger.info( f"Could not transform poses from 'base_link' into 'map'")
             return
         myLocalPose = tf2_geometry_msgs.do_transform_pose( self.posebase_link, stampedTransform )
-        if self.posebase_link.position.x!=0.0 and self.posebase_link.position.y!=0.0 :
-            self.msg.data=str(myLocalPose._position.x)+","+str(myLocalPose._position.y)                 #la position voulue est transformée en type string afin qu'elle puisse être envoyée sur le topic Apres_tf
+        if self.posebase_link.position.x!=0.0 and self.posebase_link.position.y!=0.0 :                #if the position doesn't change since the initialisation we don't publish coordinates
+            self.msg.data=str(myLocalPose._position.x)+","+str(myLocalPose._position.y)               #the coordinates change into the frame map
             self._pub.publish(self.msg)
 
     #def control_callback2(self):
