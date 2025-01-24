@@ -1,7 +1,15 @@
 launch:
+    - include:
+        file: "/opt/ros/iron/share/slam_toolbox/launch/online_sync_launch.py"
     - node:
         pkg: "grp_pibot27"
         exec: "move.py"
+    - node:
+        pkg: "grp_pibot27"
+        exec: "marker"
+    - node:
+        pkg: "grp_pibot27"
+        exec: "listener3.py"
     - node:
         pkg: "grp_pibot27"
         exec: "image_processing"
@@ -9,7 +17,7 @@ launch:
         pkg: "rviz2"
         exec: "rviz2"
         name: "rviz2"
-        args: "-d $(find-pkg-share grp_pibot27)/config/config.rviz"
+        args: "-d $(find-pkg-share grp_pibot27)/config/config2.rviz"
 
     
 

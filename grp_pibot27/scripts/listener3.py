@@ -31,19 +31,19 @@ class ROSListener1():
         self._logger= rosNode.get_logger()
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener( self.tf_buffer, rosNode )
-        self._timer1=rosNode.create_timer(0.1,self.publish_goal)
+        #self._timer1=rosNode.create_timer(0.1,self.publish_goal)
         self.position = Point()
         self.posebase_link= Pose()
         self.posebase_link.position.x= 0.0
         self.posebase_link.position.y= 0.0
         self._pub=rosNode.create_publisher(String,"Apres_tf",10)                            #publie sur le topic "Apres_tf" pour afficher le marqueur
-        self._timForCtrl= rosNode.create_timer(
-            1, self.control_callback2
-        )
+        #self._timForCtrl= rosNode.create_timer(
+            #1, self.control_callback2)
         self._sub=rosNode.create_subscription(String,'detection',self.listener_callback1,10)
     
     def listener_callback1(self,message):
         self.coord=message
+        self.publish_goal()
     
     def coord_base_link(self):
         print( f"message reçue {self.coord}")
@@ -51,7 +51,7 @@ class ROSListener1():
             r=float(self.coord.data.split(',',2)[0])
             alpha=float(self.coord.data.split(',',2)[1])
             self.posebase_link.position.x = r*np.cos(alpha)
-            self.posebase_link.position.y = r*np.sin(alpha)
+            self.posebase_link.position.y = -r*np.sin(alpha)
 
     def publish_goal(self):
         self.coord_base_link()
@@ -67,10 +67,12 @@ class ROSListener1():
             self._logger.info( f"Could not transform poses from 'base_link' into 'map'")
             return
         myLocalPose = tf2_geometry_msgs.do_transform_pose( self.posebase_link, stampedTransform )
-        self.msg.data=str(myLocalPose._position.x)+","+str(myLocalPose._position.y)                 #la position voulue est transformée en type string afin qu'elle puisse être envoyée sur le topic Apres_tf
+        if self.posebase_link.position.x!=0.0 and self.posebase_link.position.y!=0.0 :
+            self.msg.data=str(myLocalPose._position.x)+","+str(myLocalPose._position.y)                 #la position voulue est transformée en type string afin qu'elle puisse être envoyée sur le topic Apres_tf
+            self._pub.publish(self.msg)
 
-    def control_callback2(self):
-        self._pub.publish(self.msg)
+    #def control_callback2(self):
+     #   self._pub.publish(self.msg)
 
 if __name__ == '__main__':
     listen()
