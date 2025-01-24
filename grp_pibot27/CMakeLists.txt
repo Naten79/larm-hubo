@@ -41,7 +41,7 @@ install(DIRECTORY
 
 install( PROGRAMS scripts/move.py DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/movegazebo.py DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/listener3.py DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/transformer.py DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/marker DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/image_processing DESTINATION lib/${PROJECT_NAME} )
 
