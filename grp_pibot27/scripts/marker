@@ -91,21 +91,8 @@ class ROSListener():
                 self.L.append((x, y))
                 self.publish_marker((x,y))
 
-            # self.coord=[]
-#if the point is next to an existing marker, the markerdoes not appear which allow us to kown that the ghost was already detected
-            # for point in self.L:
-            #     for p in self.L:
-            #         print((point[0]-p[0])**2+(point[1]-p[1])**2)
-            #         if ((point[0]-p[0])**2+(point[1]-p[1])**2)<0.1 :      
-            #             self.bool = self.bool+1
-            #     if self.bool<2:
-            #         self.publish_marker(point)
-            #     else :
-            #         self.L.pop()                                   
-            #     self.bool = 0
 
-    def publish_marker(self,point):
-        #for point in self.L:        
+    def publish_marker(self,point):  
 #Creation of a unique marker for each ghost detected
         m = Marker()
         m.action=Marker.ADD
@@ -126,10 +113,8 @@ class ROSListener():
         self.marker.markers.append(m)
         self.b+=1
                     
-                    #self.marker.header.stamp = rclpy.time.Time().to_msg()  # Set the timestamp
+                  
         self._publisher1.publish(self.marker)
-                    #self._logger.info('Publishing marker: {}'.format(self.marker))
-                    #self.marker.pose.position = Point(x=1.0, y=1.0, z=1.0)
 
 if __name__ == '__main__':
     listen()
