@@ -75,9 +75,7 @@ class ROSListener1():
         if self.posebase_link.position.x!=0.0 and self.posebase_link.position.y!=0.0 :                #if the position doesn't change since the initialisation we don't publish coordinates
             self.msg.data=str(myLocalPose._position.x)+","+str(myLocalPose._position.y)               #the coordinates change into the frame map
             self._pub.publish(self.msg)
-
-    #def control_callback2(self):
-     #   self._pub.publish(self.msg)
+            
 
 if __name__ == '__main__':
     listen()
